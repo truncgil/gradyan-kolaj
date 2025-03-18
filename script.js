@@ -4,17 +4,30 @@ let stage = null;
 let layer = null;
 let transformer = null;
 let stageBorder = null;
+let currentStep = 1;
 
 // HTML elementlerine erişim
 const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('file-input');
 const previewContainer = document.getElementById('preview-container');
+const imageCountElement = document.getElementById('image-count');
 const canvasContainer = document.getElementById('canvas-container');
 const createCollageBtn = document.getElementById('create-collage');
 const downloadBtn = document.getElementById('download-collage');
 const downloadPngBtn = document.getElementById('download-png');
 const canvasWidthInput = document.getElementById('canvas-width');
 const canvasHeightInput = document.getElementById('canvas-height');
+const backToUploadsBtn = document.getElementById('back-to-uploads');
+const moveToolBtn = document.getElementById('move-mode');
+const rotateToolBtn = document.getElementById('rotate-mode');
+const resizeToolBtn = document.getElementById('resize-mode');
+const step1Indicator = document.getElementById('step-1-indicator');
+const step2Indicator = document.getElementById('step-2-indicator');
+const step1 = document.getElementById('step-1');
+const step2 = document.getElementById('step-2');
+
+// Ön Ayar Butonları
+const presetButtons = document.querySelectorAll('.preset-buttons button');
 
 // Olay dinleyicileri
 document.addEventListener('DOMContentLoaded', initApp);
@@ -22,10 +35,28 @@ dropArea.addEventListener('dragover', handleDragOver);
 dropArea.addEventListener('dragleave', handleDragLeave);
 dropArea.addEventListener('drop', handleDrop);
 dropArea.addEventListener('click', () => fileInput.click());
+document.querySelector('.upload-btn').addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', handleFileSelect);
-createCollageBtn.addEventListener('click', createCollage);
+createCollageBtn.addEventListener('click', goToCollageEditor);
+backToUploadsBtn.addEventListener('click', goToUploadStep);
 downloadBtn.addEventListener('click', downloadCollage);
 downloadPngBtn.addEventListener('click', downloadPng);
+
+// Editor araç butonları
+moveToolBtn.addEventListener('click', () => setActiveTool('move'));
+rotateToolBtn.addEventListener('click', () => setActiveTool('rotate'));
+resizeToolBtn.addEventListener('click', () => setActiveTool('resize'));
+
+// Preset Butonları
+presetButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const width = button.getAttribute('data-width');
+        const height = button.getAttribute('data-height');
+        canvasWidthInput.value = width;
+        canvasHeightInput.value = height;
+        updateCanvasSize();
+    });
+});
 
 // Uygulamayı başlat
 function initApp() {
@@ -47,17 +78,17 @@ function initApp() {
     transformer = new Konva.Transformer({
         nodes: [],
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
-        rotateEnabled: true, // Döndürme özelliğini aktif et
-        rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315], // 45 derece açılarla döndürme
-        borderStroke: '#9b59b6',
+        rotateEnabled: true,
+        rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
+        borderStroke: '#673ab7',
         borderStrokeWidth: 2,
-        anchorStroke: '#9b59b6',
+        anchorStroke: '#673ab7',
         anchorFill: '#fff',
         anchorSize: 10,
         rotateAnchorOffset: 30,
-        rotateAnchorStroke: '#9b59b6',
+        rotateAnchorStroke: '#673ab7',
         rotateAnchorFill: '#fff',
-        keepRatio: true, // En-boy oranını koru
+        keepRatio: true,
         centeredScaling: false,
     });
     layer.add(transformer);
@@ -94,6 +125,89 @@ function initApp() {
     // Canvas boyut değişikliği dinleyicileri
     canvasWidthInput.addEventListener('change', updateCanvasSize);
     canvasHeightInput.addEventListener('change', updateCanvasSize);
+    
+    // Material Design Lite bileşenlerini güncelle
+    if (window.componentHandler) {
+        componentHandler.upgradeAllRegistered();
+    }
+}
+
+// Adımlar arası geçiş
+function goToCollageEditor() {
+    if (uploadedImages.length < 2) {
+        showSnackbar('Kolaj oluşturmak için en az 2 görsel gerekli!');
+        return;
+    }
+    
+    // Adım göstergesini güncelle
+    step1Indicator.classList.remove('active');
+    step2Indicator.classList.add('active');
+    
+    // Adımları göster/gizle
+    step1.classList.remove('active');
+    step2.classList.add('active');
+    
+    // Mevcut adımı güncelle
+    currentStep = 2;
+    
+    // Kolajı oluştur
+    createCollage();
+}
+
+function goToUploadStep() {
+    // Adım göstergesini güncelle
+    step1Indicator.classList.add('active');
+    step2Indicator.classList.remove('active');
+    
+    // Adımları göster/gizle
+    step1.classList.add('active');
+    step2.classList.remove('active');
+    
+    // Mevcut adımı güncelle
+    currentStep = 1;
+}
+
+// Araç modu değiştirme
+function setActiveTool(tool) {
+    // Tüm butonlardan aktif sınıfını kaldır
+    moveToolBtn.classList.remove('tool-active');
+    rotateToolBtn.classList.remove('tool-active');
+    resizeToolBtn.classList.remove('tool-active');
+    
+    // Transformer özelliklerini güncelle
+    if (tool === 'move') {
+        moveToolBtn.classList.add('tool-active');
+        transformer.enabledAnchors([]);
+        transformer.rotateEnabled(false);
+    } else if (tool === 'rotate') {
+        rotateToolBtn.classList.add('tool-active');
+        transformer.enabledAnchors([]);
+        transformer.rotateEnabled(true);
+    } else if (tool === 'resize') {
+        resizeToolBtn.classList.add('tool-active');
+        transformer.enabledAnchors(['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center']);
+        transformer.rotateEnabled(false);
+    }
+    
+    layer.draw();
+}
+
+// Bildirim göster
+function showSnackbar(message) {
+    if (!document.getElementById('snackbar')) {
+        const snackbar = document.createElement('div');
+        snackbar.id = 'snackbar';
+        snackbar.className = 'mdl-js-snackbar mdl-snackbar';
+        snackbar.innerHTML = `
+            <div class="mdl-snackbar__text"></div>
+            <button class="mdl-snackbar__action" type="button"></button>
+        `;
+        document.body.appendChild(snackbar);
+    }
+    
+    const snackbarContainer = document.getElementById('snackbar');
+    const data = { message: message, timeout: 3000 };
+    snackbarContainer.MaterialSnackbar.showSnackbar(data);
 }
 
 // Tuval sınırları oluştur
@@ -105,6 +219,7 @@ function createStageBorder() {
     
     // Konva.js container'ını bul
     const konvaContainer = document.querySelector('.konvajs-content');
+    if (!konvaContainer) return;
     
     // Sınır div'i oluştur
     stageBorder = document.createElement('div');
@@ -136,7 +251,7 @@ function updateCanvasSize() {
     }
     
     // Kolaj oluşturulduysa tekrar oluştur
-    if (uploadedImages.length > 0) {
+    if (uploadedImages.length > 0 && currentStep === 2) {
         createCollage();
     }
 }
@@ -182,7 +297,7 @@ function processFiles(files) {
         file.type.startsWith('image/'));
     
     if (imageFiles.length === 0) {
-        alert('Lütfen geçerli görsel dosyaları seçin (jpg, png, gif vb.)');
+        showSnackbar('Lütfen geçerli görsel dosyaları seçin (jpg, png, gif vb.)');
         return;
     }
     
@@ -194,10 +309,17 @@ function processFiles(files) {
             uploadedImages = uploadedImages.concat(images);
             updateImagePreview();
             createCollageBtn.disabled = uploadedImages.length < 2;
+            
+            // Görsel sayısı bildirimi
+            if (images.length === 1) {
+                showSnackbar('1 görsel yüklendi');
+            } else {
+                showSnackbar(`${images.length} görsel yüklendi`);
+            }
         })
         .catch(error => {
             console.error('Görsel yükleme hatası:', error);
-            alert('Görseller yüklenirken bir hata oluştu.');
+            showSnackbar('Görseller yüklenirken bir hata oluştu.');
         });
 }
 
@@ -248,16 +370,24 @@ function updateImagePreview() {
             uploadedImages.splice(index, 1);
             updateImagePreview();
             createCollageBtn.disabled = uploadedImages.length < 2;
+            
+            // Görsel sayacını güncelle
+            imageCountElement.textContent = `(${uploadedImages.length})`;
+            
+            showSnackbar('Görsel kaldırıldı');
         });
         
         previewContainer.appendChild(preview);
     });
+    
+    // Görsel sayacını güncelle
+    imageCountElement.textContent = `(${uploadedImages.length})`;
 }
 
 // Kolaj oluştur
 function createCollage() {
     if (uploadedImages.length < 2) {
-        alert('Kolaj oluşturmak için en az 2 görsel gereklidir.');
+        showSnackbar('Kolaj oluşturmak için en az 2 görsel gereklidir.');
         return;
     }
     
@@ -268,13 +398,13 @@ function createCollage() {
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
         rotateEnabled: true,
         rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
-        borderStroke: '#9b59b6',
+        borderStroke: '#673ab7',
         borderStrokeWidth: 2,
-        anchorStroke: '#9b59b6',
+        anchorStroke: '#673ab7',
         anchorFill: '#fff',
         anchorSize: 10,
         rotateAnchorOffset: 30,
-        rotateAnchorStroke: '#9b59b6',
+        rotateAnchorStroke: '#673ab7',
         rotateAnchorFill: '#fff',
         keepRatio: true,
         centeredScaling: false,
@@ -509,6 +639,9 @@ function createCollage() {
             layer.draw();
         }
     }, 500); // Görseller yüklendikten sonra çalışması için biraz bekle
+    
+    // Bildirim göster
+    showSnackbar('Kolaj oluşturuldu! Görselleri düzenleyebilirsiniz.');
 }
 
 // Kolajı JPG olarak indir
@@ -520,6 +653,8 @@ function downloadCollage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    showSnackbar('Kolaj JPG olarak indirildi!');
 }
 
 // Kolajı PNG olarak indir (transparan)
@@ -534,4 +669,6 @@ function downloadPng() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    showSnackbar('Kolaj PNG olarak indirildi!');
 } 
