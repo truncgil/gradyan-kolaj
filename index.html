@@ -52,7 +52,7 @@
                             </div>
                             <div class="mdl-card__supporting-text">
                                 <!-- Sürükle Bırak Alanı -->
-                                <div id="drop-area">
+                                <div id="drop-area" class="dropzone" data-allowed="true">
                                     <p>Görselleri buraya sürükleyip bırakın veya</p>
                                     <input type="file" id="file-input" accept="image/*" multiple>
                                     <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored upload-btn">
@@ -156,6 +156,12 @@
                         </div>
                         
                         <div id="canvas-container" class="editor-canvas mdl-shadow--2dp"></div>
+                        <div class="zoom-control">
+                            <button id="zoom-out" title="Uzaklaştır">-</button>
+                            <span id="zoom-level" class="zoom-level">100%</span>
+                            <button id="zoom-in" title="Yakınlaştır">+</button>
+                            <button id="zoom-reset" title="Sıfırla">R</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -172,9 +178,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker registration failed', err));
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker başarıyla kaydedildi'))
+                    .catch(err => console.log('Service Worker kaydı başarısız oldu', err));
             });
         }
     </script>
