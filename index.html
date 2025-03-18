@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradyan Kolaj Oluşturucu</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gradyan Kolaj Oluşturucu</h1>
+        
+        <div class="control-panel">
+            <div class="upload-section">
+                <div id="drop-area">
+                    <p>Görselleri buraya sürükleyip bırakın veya</p>
+                    <input type="file" id="file-input" accept="image/*" multiple>
+                    <label for="file-input">Dosya Seçin</label>
+                </div>
+                <div id="image-preview">
+                    <h3>Yüklenen Görseller:</h3>
+                    <div id="preview-container"></div>
+                </div>
+            </div>
+            
+            <div class="settings-section">
+                <div class="size-controls">
+                    <div class="form-group">
+                        <label for="canvas-width">Genişlik (px):</label>
+                        <input type="number" id="canvas-width" value="800" min="100" max="3000">
+                    </div>
+                    <div class="form-group">
+                        <label for="canvas-height">Yükseklik (px):</label>
+                        <input type="number" id="canvas-height" value="600" min="100" max="3000">
+                    </div>
+                </div>
+                <button id="create-collage">Kolaj Oluştur</button>
+                <button id="download-collage" disabled>JPG Olarak İndir</button>
+                <button id="download-png" disabled>PNG Olarak İndir</button>
+            </div>
+        </div>
+        
+        <div id="canvas-container">
+            <!-- Konva canvas buraya yerleştirilecek -->
+        </div>
+    </div>
+
+    <!-- Konva.js kütüphanesi -->
+    <script src="https://unpkg.com/konva@9.2.3/konva.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
