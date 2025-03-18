@@ -5,6 +5,7 @@ let layer = null;
 let transformer = null;
 let stageBorder = null;
 let currentStep = 1;
+let currentZoom = 100; // Varsayılan yakınlaştırma oranı (%)
 
 // HTML elementlerine erişim
 const dropArea = document.getElementById('drop-area');
@@ -26,11 +27,51 @@ const step2Indicator = document.getElementById('step-2-indicator');
 const step1 = document.getElementById('step-1');
 const step2 = document.getElementById('step-2');
 
+// Zoom kontrol elementleri
+const zoomInBtn = document.getElementById('zoom-in');
+const zoomOutBtn = document.getElementById('zoom-out');
+const zoomResetBtn = document.getElementById('zoom-reset');
+const zoomLevelDisplay = document.getElementById('zoom-level');
+
 // Ön Ayar Butonları
 const presetButtons = document.querySelectorAll('.preset-buttons button');
 
 // Olay dinleyicileri
 document.addEventListener('DOMContentLoaded', initApp);
+
+// Chrome için genel sürükle-bırak olaylarını engelleyelim
+document.addEventListener('dragenter', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Drop alanının dışındaki sürüklemelerde yasak imleci göster
+    if (e.target.id !== 'drop-area' && e.target.parentNode && e.target.parentNode.id !== 'drop-area') {
+        e.dataTransfer.effectAllowed = 'none';
+        e.dataTransfer.dropEffect = 'none';
+    }
+    return false;
+}, false);
+
+document.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Drop alanının dışındaki sürüklemelerde yasak imleci göster
+    if (e.target.id !== 'drop-area' && e.target.parentNode && e.target.parentNode.id !== 'drop-area') {
+        e.dataTransfer.effectAllowed = 'none';
+        e.dataTransfer.dropEffect = 'none';
+    }
+    return false;
+}, false);
+
+document.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+}, false);
+
+// Drop alanına özel sürükle-bırak olayları
+dropArea.addEventListener('dragenter', handleDragEnter);
 dropArea.addEventListener('dragover', handleDragOver);
 dropArea.addEventListener('dragleave', handleDragLeave);
 dropArea.addEventListener('drop', handleDrop);
@@ -57,6 +98,23 @@ presetButtons.forEach(button => {
         updateCanvasSize();
     });
 });
+
+// Zoom kontrolü olayları
+zoomInBtn?.addEventListener('click', () => changeZoom('+'));
+zoomOutBtn?.addEventListener('click', () => changeZoom('-'));
+zoomResetBtn?.addEventListener('click', () => setZoom(100));
+
+// Fare tekerleği ile zoom
+canvasContainer?.addEventListener('wheel', function(e) {
+    if (currentStep !== 2) return; // Sadece kolaj adımında çalış
+    
+    e.preventDefault();
+    if (e.deltaY < 0) {
+        changeZoom('+');
+    } else {
+        changeZoom('-');
+    }
+}, { passive: false });
 
 // Uygulamayı başlat
 function initApp() {
@@ -150,6 +208,9 @@ function goToCollageEditor() {
     // Mevcut adımı güncelle
     currentStep = 2;
     
+    // Zoom seviyesini sıfırla
+    setZoom(100);
+    
     // Kolajı oluştur
     createCollage();
 }
@@ -165,6 +226,9 @@ function goToUploadStep() {
     
     // Mevcut adımı güncelle
     currentStep = 1;
+    
+    // Zoom seviyesini sıfırla
+    setZoom(100);
 }
 
 // Araç modu değiştirme
@@ -256,29 +320,85 @@ function updateCanvasSize() {
     }
 }
 
-// Dosya sürüklendiğinde
-function handleDragOver(e) {
+// Dosya sürüklenmeye başladığında
+function handleDragEnter(e) {
+    console.log('Drag Enter:', e.type);
     e.preventDefault();
     e.stopPropagation();
+    
+    // İmleci ayarla
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'copy';
+    }
+    
     dropArea.classList.add('highlight');
+}
+
+// Dosya sürüklendiğinde
+function handleDragOver(e) {
+    console.log('Drag Over:', e.type);
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // İmleci ayarla
+    if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.dropEffect = 'copy';
+    }
+    
+    dropArea.classList.add('highlight');
+    return false;
 }
 
 // Dosya sürüklemesi bittiğinde
 function handleDragLeave(e) {
+    console.log('Drag Leave:', e.type);
     e.preventDefault();
     e.stopPropagation();
-    dropArea.classList.remove('highlight');
+    // Gerçekten alanın dışına çıkıldığını kontrol et
+    const rect = dropArea.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    // Fare gerçekten alanın dışındaysa sınıfı kaldır
+    if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+        dropArea.classList.remove('highlight');
+    }
 }
 
 // Dosya bırakıldığında
 function handleDrop(e) {
+    console.log('Drop Event:', e.type, e.dataTransfer);
     e.preventDefault();
     e.stopPropagation();
     dropArea.classList.remove('highlight');
     
-    const files = e.dataTransfer.files;
-    if (files.length) {
-        processFiles(files);
+    let fileList = [];
+    
+    // Chrome, Firefox ve diğer modern tarayıcılar için
+    if (e.dataTransfer.items) {
+        console.log('Using dataTransfer.items - length:', e.dataTransfer.items.length);
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+            console.log('Item type:', e.dataTransfer.items[i].kind, e.dataTransfer.items[i].type);
+            if (e.dataTransfer.items[i].kind === 'file') {
+                const file = e.dataTransfer.items[i].getAsFile();
+                console.log('Got file:', file ? file.name : 'null');
+                if (file) {
+                    fileList.push(file);
+                }
+            }
+        }
+    } else if (e.dataTransfer.files) {
+        // Safari ve eski tarayıcılar için
+        console.log('Using dataTransfer.files - length:', e.dataTransfer.files.length);
+        fileList = Array.from(e.dataTransfer.files);
+    }
+    
+    console.log('Final file list:', fileList.length);
+    if (fileList && fileList.length > 0) {
+        processFiles(fileList);
+    } else {
+        showSnackbar('Dosya bırakılamadı. Lütfen dosya seçerek deneyin.');
     }
 }
 
@@ -646,29 +766,92 @@ function createCollage() {
 
 // Kolajı JPG olarak indir
 function downloadCollage() {
-    const dataURL = stage.toDataURL({ pixelRatio: 2 });
-    const link = document.createElement('a');
-    link.download = 'gradyan-kolaj.jpg';
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Dönüştürücü görünürlüğünü geçici olarak kapat
+    const originalVisibility = transformer.visible();
+    transformer.visible(false);
+    layer.draw();
     
-    showSnackbar('Kolaj JPG olarak indirildi!');
+    // Kısa bir gecikmeden sonra ekran görüntüsü al (çizimin güncellenmesi için)
+    setTimeout(() => {
+        const dataURL = stage.toDataURL({ 
+            pixelRatio: 2,
+            mimeType: 'image/jpeg',
+            quality: 0.95
+        });
+        
+        const link = document.createElement('a');
+        link.download = 'gradyan-kolaj.jpg';
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Dönüştürücü görünürlüğünü eski haline getir
+        transformer.visible(originalVisibility);
+        layer.draw();
+        
+        showSnackbar('Kolaj JPG olarak indirildi!');
+    }, 50);
 }
 
 // Kolajı PNG olarak indir (transparan)
 function downloadPng() {
-    const dataURL = stage.toDataURL({ 
-        pixelRatio: 2,
-        mimeType: 'image/png'
-    });
-    const link = document.createElement('a');
-    link.download = 'gradyan-kolaj.png';
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Dönüştürücü görünürlüğünü geçici olarak kapat
+    const originalVisibility = transformer.visible();
+    transformer.visible(false);
+    layer.draw();
     
-    showSnackbar('Kolaj PNG olarak indirildi!');
+    // Kısa bir gecikmeden sonra ekran görüntüsü al (çizimin güncellenmesi için)
+    setTimeout(() => {
+        const dataURL = stage.toDataURL({ 
+            pixelRatio: 2,
+            mimeType: 'image/png'
+        });
+        
+        const link = document.createElement('a');
+        link.download = 'gradyan-kolaj.png';
+        link.href = dataURL;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Dönüştürücü görünürlüğünü eski haline getir
+        transformer.visible(originalVisibility);
+        layer.draw();
+        
+        showSnackbar('Kolaj PNG olarak indirildi!');
+    }, 50);
+}
+
+// Zoom seviyesini değiştir
+function changeZoom(direction) {
+    const zoomLevels = [50, 75, 100, 125, 150, 200];
+    let currentIndex = zoomLevels.indexOf(currentZoom);
+    
+    if (currentIndex === -1) {
+        // Eğer mevcut değer listede yoksa, en yakın değeri bul
+        currentIndex = 2; // Varsayılan olarak 100% (2. index)
+    }
+    
+    if (direction === '+' && currentIndex < zoomLevels.length - 1) {
+        currentIndex++;
+    } else if (direction === '-' && currentIndex > 0) {
+        currentIndex--;
+    }
+    
+    setZoom(zoomLevels[currentIndex]);
+}
+
+// Yakınlaştırma seviyesini ayarla
+function setZoom(zoomLevel) {
+    currentZoom = zoomLevel;
+    
+    // Tüm zoom sınıflarını kaldır
+    canvasContainer.classList.remove('zoom-50', 'zoom-75', 'zoom-100', 'zoom-125', 'zoom-150', 'zoom-200');
+    
+    // Yeni zoom sınıfını ekle
+    canvasContainer.classList.add(`zoom-${zoomLevel}`);
+    
+    // Göstergeyi güncelle
+    zoomLevelDisplay.textContent = `${zoomLevel}%`;
 } 
