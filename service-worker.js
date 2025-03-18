@@ -3,24 +3,24 @@ const CACHE_NAME = 'gradyan-kolaj-v1';
 
 // Önbelleğe alınacak dosyalar
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/manifest.json',
+  './',
+  './index.html',
+  './styles.css',
+  './script.js',
+  './manifest.json',
   'https://fonts.googleapis.com/icon?family=Material+Icons',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
   'https://code.getmdl.io/1.3.0/material.indigo-purple.min.css',
   'https://code.getmdl.io/1.3.0/material.min.js',
   'https://unpkg.com/konva@9.2.3/konva.min.js',
-  '/icons/icon-72.png',
-  '/icons/icon-96.png',
-  '/icons/icon-128.png',
-  '/icons/icon-144.png',
-  '/icons/icon-152.png',
-  '/icons/icon-192.png',
-  '/icons/icon-384.png',
-  '/icons/icon-512.png'
+  './icons/icon-72.png',
+  './icons/icon-96.png',
+  './icons/icon-128.png',
+  './icons/icon-144.png',
+  './icons/icon-152.png',
+  './icons/icon-192.png',
+  './icons/icon-384.png',
+  './icons/icon-512.png'
 ];
 
 // Service Worker yüklendiğinde
