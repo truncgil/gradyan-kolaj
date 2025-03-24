@@ -2,7 +2,7 @@
 const translations = {
     tr: {
         // Başlık ve genel UI
-        appTitle: "Gradyan Kolaj Sihirbazı",
+        appTitle: "Truncgil Grimwiz - Gradyan Kolaj Sihirbazı",
         themeToggle: "Tema Değiştir",
         
         // Adımlar
@@ -51,7 +51,7 @@ const translations = {
     },
     en: {
         // Title and general UI
-        appTitle: "Gradient Collage Wizard",
+        appTitle: "Truncgil Grimwiz - Gradient Collage Wizard",
         themeToggle: "Toggle Theme",
         
         // Steps
