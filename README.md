@@ -1,7 +1,7 @@
 # Grimwiz - Gradient Collage Wizard
 
 <p align="center">
-  <img src="icons/android-chrome-512x512.png" alt="Grimwiz Logo" width="120"/>
+  <img src="icons/logo2.svg" alt="Grimwiz Logo" width="240"/>
 </p>
 
 <p align="center">
