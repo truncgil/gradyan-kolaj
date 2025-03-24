@@ -1,65 +1,249 @@
-# Gradyan Kolaj Oluşturucu
+# Grimwiz - Gradient Collage Wizard
 
-Bu web uygulaması, Konva.js kütüphanesi kullanılarak geliştirilmiş bir gradyan kolaj oluşturucudur. Sürükle-bırak yöntemiyle görseller yükleyebilir, bu görseller arasında otomatik gradyan geçişli bir kolaj oluşturabilir ve sonucu JPG formatında indirebilirsiniz.
+<p align="center">
+  <img src="icons/android-chrome-512x512.png" alt="Grimwiz Logo" width="120"/>
+</p>
 
-## Özellikler
+<p align="center">
+  A modern web application for creating professional-looking collages with smooth gradient transitions.
+</p>
 
-- Sürükle-bırak veya dosya seçme yöntemiyle birden fazla görsel yükleme
-- Yüklenen görseller arasında otomatik gradyan geçişler oluşturma
-- Kolaj boyutunu özelleştirme
-- Oluşturulan kolajı JPG formatında indirme
-- Taşınabilir görseller (sürükle-bırak ile düzenleme)
+<p align="center">
+  <a href="https://grimwiz.truncgil.com">View Demo</a> ·
+  <a href="https://github.com/truncgil/gradyan-kolaj/issues">Report Bug</a> ·
+  <a href="https://github.com/truncgil/gradyan-kolaj/issues">Request Feature</a>
+</p>
 
-## Nasıl Kullanılır
+## ✨ Features
 
-1. Görselleri sürükleyip bırakarak veya "Dosya Seçin" butonuna tıklayarak birden fazla görsel yükleyin
-2. Yüklenen görseller önizleme alanında gösterilecektir (istemediğiniz görselleri kaldırmak için üzerlerine tıklayabilirsiniz)
-3. Kolaj boyutunu "Genişlik" ve "Yükseklik" alanlarından ayarlayın
-4. "Kolaj Oluştur" butonuna tıklayarak gradyan geçişli kolajı oluşturun
-5. Oluşturulan kolajı "JPG Olarak İndir" butonuna tıklayarak indirin
+- **Gradient-based Collages**: Create seamless gradient transitions between multiple images
+- **Intuitive Interface**: Simple drag-and-drop operation with real-time editing
+- **Built-in Presets**: Ready-to-use templates for Instagram, Facebook, and full HD formats
+- **Multilingual Support**: Available in Turkish and English with easy language switching
+- **Theme Options**: Light and dark mode with system preference detection
+- **Offline Capability**: Progressive Web App (PWA) with offline functionality
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Local Storage**: Remembers your canvas size preferences
 
-## Teknik Detaylar
+## 📋 Table of Contents
 
-Bu uygulama şu teknolojiler kullanılarak geliştirilmiştir:
+- [Demo](#-demo)
+- [Features](#-features)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Technical Documentation](#-technical-documentation)
+- [Project Structure](#-project-structure)
+- [Used Technologies](#-used-technologies)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-- HTML5
-- CSS3
-- JavaScript
-- [Konva.js](https://konvajs.org/) - HTML5 Canvas JavaScript kütüphanesi
+## 🚀 Demo
 
-## Kurulum
+Visit [https://grimwiz.truncgil.com](https://grimwiz.truncgil.com) to see Grimwiz in action.
 
-Uygulamayı kullanmak için aşağıdaki adımları izleyin:
+## 💻 Installation
 
-1. Bu repoyu bilgisayarınıza indirin:
+### Prerequisites
+
+- A modern web browser (Chrome, Firefox, Edge, Safari)
+- Web server for local development (e.g., Apache, Nginx, or live-server)
+
+### Local Development Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/truncgil/gradyan-kolaj.git
+cd grimwiz
 ```
-git clone https://github.com/kullanici-adi/gradyan-kolaj.git
+
+2. Serve the project using a local server:
+
+```bash
+# Using npm and live-server
+npm install -g live-server
+live-server
 ```
 
-2. İndirdiğiniz klasöre gidin:
+3. Open your browser and navigate to `http://localhost:8080` (or the URL provided by your web server).
+
+### Production Deployment
+
+1. Build the project (minify CSS, JS files if needed)
+2. Upload the files to your web server
+3. Ensure HTTPS is enabled for full PWA functionality
+
+## 📖 Usage
+
+### Step 1: Upload Images
+
+1. **Add Images**: Drag and drop your images into the upload area or click "Select File" to browse your device.
+2. **Set Canvas Size**: Choose from preset dimensions (Instagram Square, Facebook Share, Full HD) or enter custom dimensions.
+3. **Create Collage**: Click "Create Collage" to proceed to the editing stage.
+
+### Step 2: Edit Collage
+
+1. **Manipulate Images**: Use the tools to move, rotate, or resize images.
+2. **Preview**: See the real-time preview of your gradient collage.
+3. **Download**: Export your creation as a JPG or PNG file.
+
+### Additional Controls
+
+- **Zoom Controls**: Use the zoom buttons (+ and -) or mouse wheel to zoom in and out
+- **Theme Toggle**: Switch between light and dark themes
+- **Language Selection**: Change the interface language (English/Turkish)
+
+## 📚 Technical Documentation
+
+### Konva.js Implementation
+
+Grimwiz uses [Konva.js](https://konvajs.org/) for canvas manipulation. The core functionality is implemented in `script.js`:
+
+```javascript
+// Core function for creating gradient collages
+function createCollage() {
+    // Initialize stage and layer
+    // For each image:
+    //   1. Calculate aspect ratio and position
+    //   2. Apply gradient masks at edges
+    //   3. Add to layer with proper z-index
+    //   4. Make draggable and add to transformer
+}
 ```
-cd gradyan-kolaj
+
+Key Konva.js components used:
+- `Konva.Stage`: Main container for all canvas elements
+- `Konva.Layer`: Container for visual elements
+- `Konva.Image`: For displaying and manipulating images
+- `Konva.Group`: For grouping related elements
+- `Konva.Transformer`: For transforming (moving, rotating, resizing) elements
+
+### Gradient Transition Algorithm
+
+The gradient effect between images is created using HTML5 Canvas API:
+
+```javascript
+// For each image:
+const canvas = document.createElement('canvas');
+canvas.width = imgWidth;
+canvas.height = imgHeight;
+const ctx = canvas.getContext('2d');
+
+// Draw the image
+ctx.drawImage(image.element, 0, 0, imgWidth, imgHeight);
+
+// Create gradient mask
+const gradient = ctx.createLinearGradient(0, 0, imgWidth, 0);
+gradient.addColorStop(0, 'rgba(0,0,0,1)'); // Fully opaque (left edge)
+gradient.addColorStop(0.3, 'rgba(0,0,0,0)'); // Transparent
+gradient.addColorStop(0.7, 'rgba(0,0,0,0)'); // Transparent
+gradient.addColorStop(1, 'rgba(0,0,0,1)'); // Fully opaque (right edge)
+
+// Apply gradient mask
+ctx.globalCompositeOperation = 'destination-out';
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, imgWidth, imgHeight);
 ```
 
-3. `index.html` dosyasını bir web tarayıcısında açın
+### Translation System
 
-## Tarayıcı Desteği
+The application uses a simple i18n system with language definitions in `translations.js`:
 
-Uygulama modern web tarayıcılarında çalışır:
+```javascript
+// Translation usage
+function i18n(key) {
+    // Get translation for current language
+    if (translations[currentLanguage] && translations[currentLanguage][key]) {
+        return translations[currentLanguage][key];
+    }
+    
+    // Fallback to default language
+    if (translations.tr && translations.tr[key]) {
+        return translations.tr[key];
+    }
+    
+    // Return key if no translation found
+    return key;
+}
 
-- Google Chrome (önerilen)
-- Mozilla Firefox
-- Microsoft Edge
-- Safari
+// Apply translations to the page
+function translatePage() {
+    // Find all elements with data-i18n attribute
+    const elements = document.querySelectorAll('[data-i18n]');
+    
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (key) {
+            element.textContent = i18n(key);
+        }
+    });
+    
+    // Update document title and tooltips
+    document.title = i18n('appTitle');
+    updateTooltips();
+}
+```
 
-## Katkıda Bulunma
+### PWA Implementation
 
-1. Bu repoyu fork edin
-2. Yeni bir branch oluşturun (`git checkout -b yeni-ozellik`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Yeni özellik eklendi'`)
-4. Branch'inizi push edin (`git push origin yeni-ozellik`)
-5. Pull request oluşturun
+The Progressive Web App functionality is implemented with:
 
-## Lisans
+1. **Manifest File** (`manifest.json`): Defines app metadata, icons, and display properties
+2. **Service Worker** (`service-worker.js`): Handles caching and offline functionality
+3. **Offline Page** (`offline.html`): Custom page displayed when no internet connection is available
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır. 
+## 🗂️ Project Structure
+
+```
+grimwiz/
+├── index.html              # Main HTML file
+├── offline.html            # Offline fallback page
+├── manifest.json           # PWA manifest
+├── favicon.ico             # Favicon
+├── service-worker.js       # Service worker for offline functionality
+├── script.js               # Main JavaScript file
+├── styles.css              # Main CSS file
+├── translations.js         # Language translations
+├── icons/                  # App icons
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   ├── logo2.svg
+│   └── ...
+└── README.md               # This documentation
+```
+
+## 🛠️ Used Technologies
+
+- **Frontend Framework**: Vanilla JavaScript with Material Design Lite
+- **Canvas Manipulation**: Konva.js 9.2.3
+- **Styling**: Custom CSS with Material Design principles
+- **Progressive Web App**: Service Workers, Web App Manifest
+- **Internationalization**: Custom i18n implementation
+- **Local Storage**: For saving user preferences
+- **Responsive Design**: Media queries and flexible layouts
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgements
+
+- [Konva.js](https://konvajs.org/) for canvas manipulation
+- [Material Design Lite](https://getmdl.io/) for UI components
+- [Google Fonts](https://fonts.google.com/) for typography
+
+---
+
+<p align="center">
+  Developed with ❤️ by <a href="https://truncgil.com/">Truncgil</a>
+</p> 
