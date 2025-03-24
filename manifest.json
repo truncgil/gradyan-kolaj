@@ -1,51 +1,45 @@
 {
-  "name": "Gradyan Kolaj Sihirbazı",
-  "short_name": "Kolaj",
-  "description": "Gradyan geçişli kolajlar oluşturmak için kullanılan bir web uygulaması",
-  "start_url": "./",
+  "name": "Grimwiz",
+  "short_name": "Grimwiz",
+  "description": "Gradyan geçişli kolajlar oluşturmak için modern bir araç. Fotoğraflarınızı hızlıca birleştirin, düzenleyin ve paylaşın. Gradient Collage Wizard.",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#673ab7",
+  "background_color": "#1a237e",
+  "theme_color": "#1a237e",
+  "orientation": "any",
   "icons": [
     {
-      "src": "./icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-192.png",
+      "src": "icons/android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "./icons/icon-512.png",
+      "src": "icons/android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/logo2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Grimwiz Arayüzü"
+    }
+  ],
+  "id": "grimwiz-app",
+  "lang": "tr",
+  "dir": "ltr",
+  "categories": ["photo", "productivity", "utilities", "creativity"],
+  "prefer_related_applications": false,
+  "keywords": ["kolaj", "gradyan", "fotoğraf", "düzenleme", "gradient", "collage", "wizard", "görsel", "image", "editor", "photocollage"]
 } 
