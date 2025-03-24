@@ -6,6 +6,9 @@ let transformer = null;
 let stageBorder = null;
 let currentStep = 1;
 let currentZoom = 100; // Varsayılan yakınlaştırma oranı (%)
+let darkMode = false; // Varsayılan değer
+let userThemePreference = localStorage.getItem('userThemePreference'); // Kullanıcı tercihi
+let currentLanguage = localStorage.getItem('language') || 'tr'; // Varsayılan dil
 
 // HTML elementlerine erişim
 const dropArea = document.getElementById('drop-area');
@@ -26,6 +29,9 @@ const step1Indicator = document.getElementById('step-1-indicator');
 const step2Indicator = document.getElementById('step-2-indicator');
 const step1 = document.getElementById('step-1');
 const step2 = document.getElementById('step-2');
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeIcon = document.querySelector('.theme-icon');
+const languageSelector = document.getElementById('language-selector');
 
 // Zoom kontrol elementleri
 const zoomInBtn = document.getElementById('zoom-in');
@@ -93,9 +99,17 @@ presetButtons.forEach(button => {
     button.addEventListener('click', () => {
         const width = button.getAttribute('data-width');
         const height = button.getAttribute('data-height');
+        
         canvasWidthInput.value = width;
         canvasHeightInput.value = height;
+        
+        // Canvas boyutunu güncelle ve localStorage'a kaydet
         updateCanvasSize();
+        
+        // Oluştur düğmesini etkinleştir
+        if (uploadedImages.length > 0) {
+            createCollageBtn.removeAttribute('disabled');
+        }
     });
 });
 
@@ -118,6 +132,27 @@ canvasContainer?.addEventListener('wheel', function(e) {
 
 // Uygulamayı başlat
 function initApp() {
+    // Tema durumunu kontrol et ve uygula
+    detectThemePreference();
+    
+    // Dil tercihini ayarla
+    setLanguage(currentLanguage);
+    
+    // Dil seçicisini güncel dile ayarla
+    languageSelector.value = currentLanguage;
+    
+    // Kaydedilmiş tuval boyutlarını kontrol et ve geri yükle
+    const savedWidth = localStorage.getItem('canvasWidth');
+    const savedHeight = localStorage.getItem('canvasHeight');
+    
+    if (savedWidth && !isNaN(savedWidth)) {
+        canvasWidthInput.value = savedWidth;
+    }
+    
+    if (savedHeight && !isNaN(savedHeight)) {
+        canvasHeightInput.value = savedHeight;
+    }
+    
     // Konva.js stage oluşturma
     stage = new Konva.Stage({
         container: 'canvas-container',
@@ -138,13 +173,13 @@ function initApp() {
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
         rotateEnabled: true,
         rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
-        borderStroke: '#673ab7',
+        borderStroke: '#1a237e',
         borderStrokeWidth: 2,
-        anchorStroke: '#673ab7',
+        anchorStroke: '#1a237e',
         anchorFill: '#fff',
         anchorSize: 10,
         rotateAnchorOffset: 30,
-        rotateAnchorStroke: '#673ab7',
+        rotateAnchorStroke: '#1a237e',
         rotateAnchorFill: '#fff',
         keepRatio: true,
         centeredScaling: false,
@@ -184,6 +219,26 @@ function initApp() {
     canvasWidthInput.addEventListener('change', updateCanvasSize);
     canvasHeightInput.addEventListener('change', updateCanvasSize);
     
+    // Tema değiştirme butonu dinleyicisi
+    themeToggleBtn.addEventListener('click', toggleTheme);
+    
+    // Dil değiştirme dinleyicisi
+    languageSelector.addEventListener('change', function(e) {
+        setLanguage(e.target.value);
+    });
+    
+    // Sistem teması değişikliğini dinle
+    if (window.matchMedia) {
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+        prefersDarkScheme.addEventListener('change', e => {
+            // Eğer kullanıcı henüz bir tema tercihi belirtmemişse sistem temasına uy
+            if (!userThemePreference) {
+                darkMode = e.matches;
+                applyTheme();
+            }
+        });
+    }
+    
     // Material Design Lite bileşenlerini güncelle
     if (window.componentHandler) {
         componentHandler.upgradeAllRegistered();
@@ -193,7 +248,7 @@ function initApp() {
 // Adımlar arası geçiş
 function goToCollageEditor() {
     if (uploadedImages.length < 2) {
-        showSnackbar('Kolaj oluşturmak için en az 2 görsel gerekli!');
+        showSnackbar(i18n('minTwoImages'));
         return;
     }
     
@@ -305,6 +360,16 @@ function updateCanvasSize() {
     const width = parseInt(canvasWidthInput.value);
     const height = parseInt(canvasHeightInput.value);
     
+    // Geçerli değerler kontrol edilir
+    if (isNaN(width) || width < 100 || width > 3000 || 
+        isNaN(height) || height < 100 || height > 3000) {
+        return;
+    }
+    
+    // Tuval boyutlarını localStorage'e kaydet
+    localStorage.setItem('canvasWidth', width);
+    localStorage.setItem('canvasHeight', height);
+    
     stage.width(width);
     stage.height(height);
     
@@ -398,7 +463,7 @@ function handleDrop(e) {
     if (fileList && fileList.length > 0) {
         processFiles(fileList);
     } else {
-        showSnackbar('Dosya bırakılamadı. Lütfen dosya seçerek deneyin.');
+        showSnackbar(i18n('fileDropped'));
     }
 }
 
@@ -417,7 +482,7 @@ function processFiles(files) {
         file.type.startsWith('image/'));
     
     if (imageFiles.length === 0) {
-        showSnackbar('Lütfen geçerli görsel dosyaları seçin (jpg, png, gif vb.)');
+        showSnackbar(i18n('selectValidImage'));
         return;
     }
     
@@ -432,9 +497,9 @@ function processFiles(files) {
             
             // Görsel sayısı bildirimi
             if (images.length === 1) {
-                showSnackbar('1 görsel yüklendi');
+                showSnackbar(i18n('imageUploaded_single'));
             } else {
-                showSnackbar(`${images.length} görsel yüklendi`);
+                showSnackbar(i18n('imageUploaded_multiple').replace('{count}', images.length));
             }
         })
         .catch(error => {
@@ -494,7 +559,7 @@ function updateImagePreview() {
             // Görsel sayacını güncelle
             imageCountElement.textContent = `(${uploadedImages.length})`;
             
-            showSnackbar('Görsel kaldırıldı');
+            showSnackbar(i18n('imageRemoved'));
         });
         
         previewContainer.appendChild(preview);
@@ -507,7 +572,7 @@ function updateImagePreview() {
 // Kolaj oluştur
 function createCollage() {
     if (uploadedImages.length < 2) {
-        showSnackbar('Kolaj oluşturmak için en az 2 görsel gereklidir.');
+        showSnackbar(i18n('minTwoImages'));
         return;
     }
     
@@ -518,13 +583,13 @@ function createCollage() {
         enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right', 'top-center', 'bottom-center'],
         rotateEnabled: true,
         rotationSnaps: [0, 45, 90, 135, 180, 225, 270, 315],
-        borderStroke: '#673ab7',
+        borderStroke: '#1a237e',
         borderStrokeWidth: 2,
-        anchorStroke: '#673ab7',
+        anchorStroke: '#1a237e',
         anchorFill: '#fff',
         anchorSize: 10,
         rotateAnchorOffset: 30,
-        rotateAnchorStroke: '#673ab7',
+        rotateAnchorStroke: '#1a237e',
         rotateAnchorFill: '#fff',
         keepRatio: true,
         centeredScaling: false,
@@ -761,7 +826,7 @@ function createCollage() {
     }, 500); // Görseller yüklendikten sonra çalışması için biraz bekle
     
     // Bildirim göster
-    showSnackbar('Kolaj oluşturuldu! Görselleri düzenleyebilirsiniz.');
+    showSnackbar(i18n('collageCreated'));
 }
 
 // Kolajı JPG olarak indir
@@ -790,7 +855,7 @@ function downloadCollage() {
         transformer.visible(originalVisibility);
         layer.draw();
         
-        showSnackbar('Kolaj JPG olarak indirildi!');
+        showSnackbar(i18n('downloadedAsJPG'));
     }, 50);
 }
 
@@ -819,7 +884,7 @@ function downloadPng() {
         transformer.visible(originalVisibility);
         layer.draw();
         
-        showSnackbar('Kolaj PNG olarak indirildi!');
+        showSnackbar(i18n('downloadedAsPNG'));
     }, 50);
 }
 
@@ -854,4 +919,109 @@ function setZoom(zoomLevel) {
     
     // Göstergeyi güncelle
     zoomLevelDisplay.textContent = `${zoomLevel}%`;
+}
+
+// Tema Fonksiyonları
+function toggleTheme() {
+    darkMode = !darkMode;
+    // Kullanıcı tercihini kaydet
+    userThemePreference = darkMode ? 'dark' : 'light';
+    localStorage.setItem('userThemePreference', userThemePreference);
+    applyTheme();
+}
+
+function detectThemePreference() {
+    // Önce kullanıcı tercihi var mı diye kontrol et
+    if (userThemePreference === 'dark') {
+        darkMode = true;
+    } else if (userThemePreference === 'light') {
+        darkMode = false;
+    } else {
+        // Kullanıcı tercihi yoksa sistem temasına bak
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            darkMode = true;
+        } else {
+            darkMode = false;
+        }
+    }
+    
+    applyTheme();
+}
+
+function applyTheme() {
+    if (darkMode) {
+        document.body.classList.add('dark-mode');
+        themeIcon.textContent = 'light_mode';
+    } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.textContent = 'dark_mode';
+    }
+}
+
+// Dil Fonksiyonları
+function setLanguage(lang) {
+    // Geçerli dili güncelle
+    currentLanguage = lang;
+    
+    // Tercihi localStorage'da sakla
+    localStorage.setItem('language', lang);
+    
+    // HTML belgesindeki dil özniteliğini güncelle
+    document.documentElement.lang = lang;
+    
+    // Tüm çevrilebilir öğeleri güncelle
+    translatePage();
+    
+    // Düğme ipuçlarını güncelle
+    updateTooltips();
+}
+
+function translatePage() {
+    // data-i18n özniteliği olan tüm öğeleri bul ve çevir
+    const elements = document.querySelectorAll('[data-i18n]');
+    
+    elements.forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (key) {
+            element.textContent = i18n(key);
+        }
+    });
+    
+    // Başlık elementini güncelle
+    document.title = i18n('appTitle');
+    
+    // Düğme ipuçlarını güncelle
+    backToUploadsBtn.title = i18n('backToUploads');
+    moveToolBtn.title = i18n('moveMode');
+    rotateToolBtn.title = i18n('rotateMode');
+    resizeToolBtn.title = i18n('resizeMode');
+}
+
+function updateTooltips() {
+    backToUploadsBtn.title = i18n('backToUploads');
+    moveToolBtn.title = i18n('moveMode');
+    rotateToolBtn.title = i18n('rotateMode');
+    resizeToolBtn.title = i18n('resizeMode');
+    
+    // Yakınlaştırma düğmeleri
+    zoomInBtn.title = currentLanguage === 'tr' ? 'Yakınlaştır' : 'Zoom In';
+    zoomOutBtn.title = currentLanguage === 'tr' ? 'Uzaklaştır' : 'Zoom Out';
+    zoomResetBtn.title = currentLanguage === 'tr' ? 'Sıfırla' : 'Reset';
+}
+
+// Çeviri fonksiyonu
+function i18n(key) {
+    // Dil ve anahtar için çevirinin mevcut olup olmadığını kontrol et
+    if (translations[currentLanguage] && translations[currentLanguage][key]) {
+        return translations[currentLanguage][key];
+    }
+    
+    // Çeviri bulunamadıysa, varsayılan dilde (tr) ara
+    if (translations.tr && translations.tr[key]) {
+        return translations.tr[key];
+    }
+    
+    // Hiçbir çeviri bulunamadıysa, anahtarın kendisini döndür
+    console.warn(`Çeviri bulunamadı: ${key}`);
+    return key;
 } 
