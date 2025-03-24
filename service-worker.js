@@ -10,6 +10,7 @@ const urlsToCache = [
   '/script.js',
   '/translations.js',
   '/manifest.json',
+  '/favicon.ico',
   '/icons/android-chrome-192x192.png',
   '/icons/android-chrome-512x512.png',
   '/icons/logo2.svg',
