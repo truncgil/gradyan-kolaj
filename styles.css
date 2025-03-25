@@ -758,4 +758,32 @@ body.dark-mode .mdl-textfield__label:after {
 /* Koyu Mod Dil Seçimi */
 body.dark-mode .language-selector option {
     background-color: #121212;
+}
+
+/* Ortalama Stilleri */
+.text-center {
+    text-align: center;
+    margin: 20px auto;
+    width: 100%;
+    padding: 10px 0;
+    font-size: 16px;
+}
+
+.text-center a {
+    color: #1a237e;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.text-center a:hover {
+    text-decoration: underline;
+    color: #304ffe;
+}
+
+body.dark-mode .text-center a {
+    color: #7986cb;
+}
+
+body.dark-mode .text-center a:hover {
+    color: #9fa8da;
 } 
